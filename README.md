@@ -42,6 +42,68 @@ O usando el script de instalación:
 ./install.sh
 ```
 
+### Instalar desde Releases (multiplataforma)
+
+En cada tag `vX.Y.Z` se generan binarios para Linux, macOS (Intel/Apple Silicon) y Windows.
+
+- Descarga el archivo correspondiente desde “Releases” y añade el binario a tu `PATH`.
+
+- Linux (x86_64):
+
+```bash
+VERSION="vX.Y.Z"
+curl -L -o ssh-manager.tar.gz \
+  "https://github.com/<TU_USUARIO>/<TU_REPO>/releases/download/${VERSION}/ssh-manager-${VERSION}-x86_64-unknown-linux-gnu.tar.gz"
+tar -xzf ssh-manager.tar.gz
+sudo install -m 0755 ssh-manager/ssh-manager /usr/local/bin/ssh-manager
+```
+
+- Linux (ARM64):
+
+```bash
+VERSION="vX.Y.Z"
+curl -L -o ssh-manager.tar.gz \
+  "https://github.com/<TU_USUARIO>/<TU_REPO>/releases/download/${VERSION}/ssh-manager-${VERSION}-aarch64-unknown-linux-gnu.tar.gz"
+tar -xzf ssh-manager.tar.gz
+sudo install -m 0755 ssh-manager/ssh-manager /usr/local/bin/ssh-manager
+```
+
+- macOS (Intel):
+
+```bash
+VERSION="vX.Y.Z"
+curl -L -o ssh-manager.tgz \
+  "https://github.com/<TU_USUARIO>/<TU_REPO>/releases/download/${VERSION}/ssh-manager-${VERSION}-x86_64-apple-darwin.tar.gz"
+tar -xzf ssh-manager.tgz
+sudo install -m 0755 ssh-manager/ssh-manager /usr/local/bin/ssh-manager
+```
+
+- macOS (Apple Silicon):
+
+```bash
+VERSION="vX.Y.Z"
+curl -L -o ssh-manager.tgz \
+  "https://github.com/<TU_USUARIO>/<TU_REPO>/releases/download/${VERSION}/ssh-manager-${VERSION}-aarch64-apple-darwin.tar.gz"
+tar -xzf ssh-manager.tgz
+sudo install -m 0755 ssh-manager/ssh-manager /usr/local/bin/ssh-manager
+```
+
+- Windows (PowerShell):
+
+```powershell
+$Version = "vX.Y.Z"
+Invoke-WebRequest -Uri "https://github.com/<TU_USUARIO>/<TU_REPO>/releases/download/$Version/ssh-manager-$Version-x86_64-pc-windows-msvc.zip" -OutFile ssh-manager.zip
+Expand-Archive ssh-manager.zip -DestinationPath .
+Move-Item -Force .\ssh-manager\ssh-manager.exe $Env:UserProfile\bin\ssh-manager.exe
+# Asegúrate de tener %UserProfile%\bin en el PATH
+```
+
+Verificación de integridad (opcional):
+
+```bash
+shasum -a 256 -c ssh-manager-${VERSION}-SHA256SUMS.txt
+```
+
 ## 📖 Uso
 
 ### Modo interactivo (recomendado)
