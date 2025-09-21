@@ -398,6 +398,42 @@ impl SshManager {
     fn remove_from_ssh_agent(&self, key_path: &PathBuf) {
         let _ = Command::new("ssh-add").arg("-d").arg(key_path).status();
     }
+
+    fn remove_ssh_config_for_account(&self, account: &SshAccount) -> Result<()> {
+        let ssh_config_path = self.ssh_dir.join("config");
+        if !ssh_config_path.exists() {
+            return Ok(());
+        }
+
+        let content = fs::read_to_string(&ssh_config_path)
+            .context("Failed to read SSH config")?;
+
+        let alias = Self::alias_for(account);
+        let name_escaped = regex::escape(&account.name);
+        let alias_escaped = regex::escape(&alias);
+
+        // Remove block that starts with our comment header and includes the alias Host block
+        let header_pattern = format!(
+            r"(?m)\n?# {}\s-\s[^\n]*\nHost {}\n(?:[ \t].*\n)*",
+            name_escaped, alias_escaped
+        );
+        let re_header = Regex::new(&header_pattern).context("Failed to compile regex")?;
+        let after_header = re_header.replace_all(&content, "");
+
+        // Fallback: remove a Host-alias block without the header if present
+        let host_pattern = format!(r"(?m)^\n?Host {}\n(?:[ \t].*\n)*", alias_escaped);
+        let re_host = Regex::new(&host_pattern).context("Failed to compile regex")?;
+        let new_content = re_host.replace_all(&after_header, "");
+
+        if new_content != content {
+            fs::write(&ssh_config_path, new_content.as_ref())
+                .context("Failed to write SSH config")?;
+            println!("✅ SSH config entry for '{}' removed.", alias);
+        } else {
+            println!("ℹ️  No SSH config entry found for '{}' (nothing to remove).", alias);
+        }
+        Ok(())
+    }
     
     fn list_accounts(&self) -> Result<()> {
         if self.config.accounts.is_empty() {
@@ -526,6 +562,9 @@ impl SshManager {
 
             // Remove from ssh-agent if loaded
             self.remove_from_ssh_agent(&key_path);
+
+            // Remove this account's alias block from ~/.ssh/config
+            let _ = self.remove_ssh_config_for_account(&account);
             
             // Remove from current account if it was active
             if Some(&selected) == self.config.current_account.as_ref() {
