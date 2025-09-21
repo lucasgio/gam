@@ -4,15 +4,17 @@ Una herramienta en Rust para gestionar múltiples cuentas SSH de forma fácil e 
 
 ## ✨ Características
 
-- 🔐 **Generación automática de claves SSH** con algoritmo ED25519
+- 🔐 **Generación de claves ED25519** (no interactiva con `-N`), passphrase opcional
+- 🛡️ **Permisos 600** en la clave privada e `IdentitiesOnly yes`
 - 👥 **Gestión de múltiples cuentas** (trabajo, personal, etc.)
-- 🔄 **Cambio fácil entre cuentas**
-- 📧 **Validación de emails**
-- 🔒 **Soporte para passphrases**
+- 🧩 **Aliases SSH por cuenta** (p. ej., `Host github-work`)
+- 🔄 **Cambio de cuenta con mapeo activo por host** (actualiza `Host github.com` → clave activa)
+- ⚙️ **Actualización segura del SSH config** y limpieza del bloque de la cuenta al eliminarla
+- 👁️ **Ver `~/.ssh/config`** desde el menú interactivo
 - 🍎 **Integración con macOS Keychain**
-- ⚙️ **Actualización automática del SSH config**
 - 🎨 **Interfaz interactiva con emojis**
 - 🧪 **Prueba de conexión SSH**
+- 📧 **Validación de emails**
 
 ## 🚀 Instalación
 
@@ -34,6 +36,12 @@ O para usar directamente:
 cargo run
 ```
 
+O usando el script de instalación:
+
+```bash
+./install.sh
+```
+
 ## 📖 Uso
 
 ### Modo interactivo (recomendado)
@@ -48,6 +56,7 @@ Esto iniciará un menú interactivo donde puedes:
 - 📋 Listar cuentas existentes
 - 🔄 Cambiar entre cuentas
 - 📊 Mostrar estado actual
+- 📄 Ver SSH config
 - 🗑️ Eliminar cuentas
 
 ### Comandos directos
@@ -80,6 +89,21 @@ El SSH Manager crea y gestiona los siguientes archivos:
 ├── id_accountname_hostname     # Claves privadas
 └── id_accountname_hostname.pub # Claves públicas
 ```
+
+## 🧩 Aliases y remotos Git
+
+Al agregar una cuenta se puede escribir un bloque por cuenta en `~/.ssh/config` con un **alias único** para evitar conflictos cuando hay varias cuentas en el mismo host.
+
+- Ejemplo de alias para cuenta `work` en `github.com`: `Host github-work` con `HostName github.com` y su `IdentityFile`.
+- Para usar el alias en Git:
+
+```bash
+git remote set-url origin git@github-work:org/repo.git
+```
+
+Además, al usar `ssh-manager switch`, se actualiza un bloque “activo” para el host real (p. ej., `Host github.com`) que apunta a la clave de la cuenta seleccionada. Así, si usas `git@github.com:org/repo.git` sin alias, se usará la cuenta activa.
+
+Recomendación: utiliza aliases para remotos de Git si gestionas varias identidades en el mismo host, y usa `switch` para cambiar rápidamente la identidad por defecto del host.
 
 ## 🔧 Ejemplo de uso
 
