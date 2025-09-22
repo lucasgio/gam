@@ -118,8 +118,10 @@ jobs:
           # Archive (zip for Windows, tar.gz otherwise)
           if [[ "${{ matrix.os }}" == windows-latest ]]; then
             7z a "$OUT_DIR/$PKG_BASENAME.zip" "$PKG_BASENAME" > /dev/null
+            cp "$OUT_DIR/$PKG_BASENAME.zip" "$OUT_DIR/${BIN_NAME}-${{ matrix.target }}.zip"
           else
             tar -czf "$OUT_DIR/$PKG_BASENAME.tar.gz" "$PKG_BASENAME"
+            cp "$OUT_DIR/$PKG_BASENAME.tar.gz" "$OUT_DIR/${BIN_NAME}-${{ matrix.target }}.tar.gz"
           fi
 
           # Checksums

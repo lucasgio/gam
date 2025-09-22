@@ -58,26 +58,19 @@ gam remove
 
 - Opción A: Instalar binario desde Releases
   - Ve a la página de “Releases” de tu repositorio y descarga el artefacto para tu sistema (Linux/macOS/Windows).
-  - Linux (x86_64):
+  - Linux (x86_64) sin sudo:
 ```bash
-VERSION="vX.Y.Z"
-curl -L -o gam.tar.gz \
-  "https://github.com/<TU_USUARIO>/<TU_REPO>/releases/download/${VERSION}/gam-${VERSION}-x86_64-unknown-linux-gnu.tar.gz"
-tar -xzf gam.tar.gz
-sudo install -m 0755 gam/gam /usr/local/bin/gam
+curl -fsSL https://raw.githubusercontent.com/lucasgio/gam/master/scripts/install.sh | bash
+# Esto instala en $HOME/.local/bin (agrega a tu PATH si es necesario)
 ```
-  - macOS (Apple Silicon):
+  - macOS (Apple Silicon) sin sudo:
 ```bash
-VERSION="vX.Y.Z"
-curl -L -o gam.tgz \
-  "https://github.com/<TU_USUARIO>/<TU_REPO>/releases/download/${VERSION}/gam-${VERSION}-aarch64-apple-darwin.tar.gz"
-tar -xzf gam.tgz
-sudo install -m 0755 gam/gam /usr/local/bin/gam
+curl -fsSL https://raw.githubusercontent.com/lucasgio/gam/master/scripts/install.sh | bash
 ```
   - Windows (PowerShell):
 ```powershell
-$Version = "vX.Y.Z"
-Invoke-WebRequest -Uri "https://github.com/<TU_USUARIO>/<TU_REPO>/releases/download/$Version/gam-$Version-x86_64-pc-windows-msvc.zip" -OutFile gam.zip
+$Version = "latest"
+Invoke-WebRequest -Uri "https://github.com/lucasgio/gam/releases/download/$Version/gam-x86_64-pc-windows-msvc.zip" -OutFile gam.zip
 Expand-Archive gam.zip -DestinationPath .
 Move-Item -Force .\gam\gam.exe $Env:UserProfile\bin\gam.exe
 # Asegúrate de tener %UserProfile%\bin en el PATH
