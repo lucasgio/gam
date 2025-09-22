@@ -6,6 +6,53 @@
 - **Cambio rápido de identidad activa** por host (actualiza `~/.ssh/config` de forma segura).
 - **Generación de claves ED25519** con passphrase opcional e integración con macOS Keychain.
 
+
+### Funcionalidades
+- Generar claves SSH (ED25519) con passphrase opcional e instalación en ssh-agent/Keychain.
+
+```bash
+gam add
+```
+
+- Gestionar cuentas: agregar, listar, cambiar activa, eliminar.
+
+```bash
+gam add
+gam list
+gam switch
+gam remove
+```
+
+- Aliases por cuenta: crea `Host <alias>` con `HostName`, `IdentityFile` e `IdentitiesOnly yes`.
+  - Usa el alias en tus remotos de Git para separar identidades por host.
+
+```bash
+git remote set-url origin git@github-work:org/repo.git
+```
+
+- Cambio de cuenta: actualiza un bloque activo `Host <host>` para usar la clave de la cuenta seleccionada.
+
+```bash
+gam switch
+```
+
+- Ver configuración: muestra el contenido de `~/.ssh/config` desde el menú.
+
+```bash
+gam
+```
+
+(En el menú, elige "📄 View SSH config")
+
+- Limpieza segura: al eliminar una cuenta, quita solo el bloque de esa cuenta en `~/.ssh/config`.
+
+```bash
+gam remove
+```
+
+- Validaciones y seguridad: email válido, permisos 600 en clave privada y manejo de overwrite de claves.
+- Compatibilidad macOS: añade la clave con `--apple-use-keychain` si aplica.
+
 ### Cómo instalarlo
 - Requisitos solo si compilas desde fuente: Rust estable (`rustup.rs`).
 
@@ -59,3 +106,4 @@ cargo run --bin gam
 Notas:
 - El CI ejecuta builds en Linux, macOS y Windows.
 - Los binarios publicados en Releases se generan automáticamente al crear un tag `vX.Y.Z`.
+****
