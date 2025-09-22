@@ -11,8 +11,8 @@ use clap::Parser;
 use std::os::unix::fs::PermissionsExt;
 
 #[derive(Parser, Debug)]
-#[command(name = "ssh-manager")]
-#[command(about = "A tool to manage multiple SSH accounts easily")]
+#[command(name = "gam")]
+#[command(about = "Git Account Manager: manage multiple Git SSH accounts easily")]
 struct Args {
     #[command(subcommand)]
     command: Option<Commands>,
@@ -57,27 +57,42 @@ impl SshManager {
     fn new() -> Result<Self> {
         let home_dir = home::home_dir().context("Could not find home directory")?;
         let ssh_dir = home_dir.join(".ssh");
-        let config_path = ssh_dir.join("ssh_manager_config.json");
+        let new_config_path = ssh_dir.join("gam_config.json");
+        let legacy_config_path = ssh_dir.join("ssh_manager_config.json");
         
         // Ensure .ssh directory exists
         if !ssh_dir.exists() {
             fs::create_dir_all(&ssh_dir).context("Failed to create .ssh directory")?;
         }
         
-        let config = if config_path.exists() {
-            let content = fs::read_to_string(&config_path)
+        // Load config (prefer new path, fallback to legacy)
+        let (config, loaded_from_legacy) = if new_config_path.exists() {
+            let content = fs::read_to_string(&new_config_path)
                 .context("Failed to read config file")?;
-            serde_json::from_str(&content)
-                .context("Failed to parse config file")?
+            let cfg = serde_json::from_str(&content)
+                .context("Failed to parse config file")?;
+            (cfg, false)
+        } else if legacy_config_path.exists() {
+            let content = fs::read_to_string(&legacy_config_path)
+                .context("Failed to read legacy config file")?;
+            let cfg = serde_json::from_str(&content)
+                .context("Failed to parse legacy config file")?;
+            (cfg, true)
         } else {
-            Config::default()
+            (Config::default(), false)
         };
         
-        Ok(SshManager {
-            config_path,
+        let manager = SshManager {
+            config_path: new_config_path.clone(),
             ssh_dir,
             config,
-        })
+        };
+
+        if loaded_from_legacy {
+            let _ = manager.save_config();
+        }
+
+        Ok(manager)
     }
     
     fn save_config(&self) -> Result<()> {
@@ -327,19 +342,22 @@ impl SshManager {
             String::new()
         };
 
-        let start_marker = format!("# ssh-manager ACTIVE START [{}]\n", host);
-        let end_marker = format!("# ssh-manager ACTIVE END [{}]\n", host);
+        let start_marker_new = format!("# gam ACTIVE START [{}]\n", host);
+        let end_marker_new = format!("# gam ACTIVE END [{}]\n", host);
+        let start_marker_old = format!("# ssh-manager ACTIVE START [{}]\n", host);
+        let end_marker_old = format!("# ssh-manager ACTIVE END [{}]\n", host);
 
         let mut block = String::new();
-        block.push_str(&start_marker);
+        block.push_str(&start_marker_new);
         block.push_str(&format!(
             "Host {}\n    HostName {}\n    User git\n    IdentityFile {}\n    AddKeysToAgent yes\n    UseKeychain yes\n    IdentitiesOnly yes\n",
             host,
             host,
             key_path.display()
         ));
-        block.push_str(&end_marker);
+        block.push_str(&end_marker_new);
 
+        let (start_marker, end_marker) = if current_config.contains(&start_marker_new) { (start_marker_new.clone(), end_marker_new.clone()) } else { (start_marker_old.clone(), end_marker_old.clone()) };
         if let Some(start_idx) = current_config.find(&start_marker) {
             if let Some(after_start) = current_config.get(start_idx + start_marker.len()..) {
                 if let Some(end_rel_idx) = after_start.find(&end_marker) {
@@ -376,22 +394,25 @@ impl SshManager {
         }
 
         let mut current_config = fs::read_to_string(&ssh_config_path).context("Failed to read SSH config")?;
-        let start_marker = format!("# ssh-manager ACTIVE START [{}]\n", host);
-        let end_marker = format!("# ssh-manager ACTIVE END [{}]\n", host);
-
-        if let Some(start_idx) = current_config.find(&start_marker) {
-            if let Some(after_start) = current_config.get(start_idx + start_marker.len()..) {
-                if let Some(end_rel_idx) = after_start.find(&end_marker) {
-                    let end_idx = start_idx + start_marker.len() + end_rel_idx + end_marker.len();
-                    let mut new_config = String::with_capacity(current_config.len());
-                    new_config.push_str(&current_config[..start_idx]);
-                    new_config.push_str(&current_config[end_idx..]);
-                    current_config = new_config;
-                    fs::write(&ssh_config_path, current_config).context("Failed to write SSH config")?;
-                    println!("ℹ️  Active SSH mapping cleared for {}", host);
+        let markers = [
+            (format!("# gam ACTIVE START [{}]\n", host), format!("# gam ACTIVE END [{}]\n", host)),
+            (format!("# ssh-manager ACTIVE START [{}]\n", host), format!("# ssh-manager ACTIVE END [{}]\n", host)),
+        ];
+        for (start_marker, end_marker) in markers {
+            if let Some(start_idx) = current_config.find(&start_marker) {
+                if let Some(after_start) = current_config.get(start_idx + start_marker.len()..) {
+                    if let Some(end_rel_idx) = after_start.find(&end_marker) {
+                        let end_idx = start_idx + start_marker.len() + end_rel_idx + end_marker.len();
+                        let mut new_config = String::with_capacity(current_config.len());
+                        new_config.push_str(&current_config[..start_idx]);
+                        new_config.push_str(&current_config[end_idx..]);
+                        current_config = new_config;
+                    }
                 }
             }
         }
+        fs::write(&ssh_config_path, current_config).context("Failed to write SSH config")?;
+        println!("ℹ️  Active SSH mapping cleared for {}", host);
         Ok(())
     }
 
@@ -437,7 +458,7 @@ impl SshManager {
     
     fn list_accounts(&self) -> Result<()> {
         if self.config.accounts.is_empty() {
-            println!("📭 No accounts found. Use 'ssh-manager add' to create one.");
+            println!("📭 No accounts found. Use 'gam add' to create one.");
             return Ok(());
         }
         
@@ -463,7 +484,7 @@ impl SshManager {
     
     fn switch_account(&mut self) -> Result<()> {
         if self.config.accounts.is_empty() {
-            println!("📭 No accounts found. Use 'ssh-manager add' to create one.");
+            println!("📭 No accounts found. Use 'gam add' to create one.");
             return Ok(());
         }
         
@@ -524,7 +545,7 @@ impl SshManager {
                 println!("❌ Current account '{}' not found in configuration", current);
             }
         } else {
-            println!("📭 No active account set. Use 'ssh-manager switch' to select one.");
+            println!("📭 No active account set. Use 'gam switch' to select one.");
         }
         
         Ok(())
@@ -612,7 +633,7 @@ impl SshManager {
                 "🚪 Exit",
             ];
             
-            let selection = Select::new("\n🔑 SSH Account Manager - What would you like to do?", options)
+            let selection = Select::new("\n🔑 Git Account Manager (gam) - What would you like to do?", options)
                 .prompt()
                 .context("Failed to get menu selection")?;
             

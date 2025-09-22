@@ -1,8 +1,12 @@
 [package]
-name = "ssh-manager"
+name = "git-account-manager"
 version = "0.1.0"
 edition = "2021"
-description = "A tool to manage multiple SSH accounts easily"
+description = "Git Account Manager (gam): Manage multiple Git SSH accounts easily"
+
+[[bin]]
+name = "gam"
+path = "src/main.rs"
 
 [dependencies]
 inquire = "0.7"

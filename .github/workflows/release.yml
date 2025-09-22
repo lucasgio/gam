@@ -65,7 +65,7 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          BIN_NAME="ssh-manager"
+          BIN_NAME="gam"
           TARGET_DIR="target/${{ matrix.target }}/release"
           OUT_DIR="dist"
           mkdir -p "$OUT_DIR"
@@ -94,7 +94,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ssh-manager-${{ matrix.target }}
+          name: gam-${{ matrix.target }}
           path: dist/*
 
   publish:

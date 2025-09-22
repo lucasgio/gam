@@ -1,6 +1,6 @@
-# SSH Manager 🔑
+# Git Account Manager (gam) 🔑
 
-Una herramienta en Rust para gestionar múltiples cuentas SSH de forma fácil e interactiva. Perfecta para desarrolladores que trabajan con múltiples cuentas de GitHub, GitLab, Bitbucket o servidores personalizados.
+Una herramienta en Rust para gestionar múltiples cuentas SSH de Git de forma fácil e interactiva. Perfecta para desarrolladores que trabajan con múltiples cuentas de GitHub, GitLab, Bitbucket o servidores personalizados.
 
 ## ✨ Características
 
@@ -27,13 +27,13 @@ Una herramienta en Rust para gestionar múltiples cuentas SSH de forma fácil e 
 ```bash
 cd /Users/gio/Documents/ssh-manager
 cargo build --release
-sudo cp target/release/ssh-manager /usr/local/bin/
+sudo cp target/release/gam /usr/local/bin/
 ```
 
 O para usar directamente:
 
 ```bash
-cargo run
+cargo run --bin gam
 ```
 
 O usando el script de instalación:
@@ -52,56 +52,56 @@ En cada tag `vX.Y.Z` se generan binarios para Linux, macOS (Intel/Apple Silicon)
 
 ```bash
 VERSION="vX.Y.Z"
-curl -L -o ssh-manager.tar.gz \
-  "https://github.com/<TU_USUARIO>/<TU_REPO>/releases/download/${VERSION}/ssh-manager-${VERSION}-x86_64-unknown-linux-gnu.tar.gz"
-tar -xzf ssh-manager.tar.gz
-sudo install -m 0755 ssh-manager/ssh-manager /usr/local/bin/ssh-manager
+curl -L -o gam.tar.gz \
+  "https://github.com/<TU_USUARIO>/<TU_REPO>/releases/download/${VERSION}/gam-${VERSION}-x86_64-unknown-linux-gnu.tar.gz"
+tar -xzf gam.tar.gz
+sudo install -m 0755 gam/gam /usr/local/bin/gam
 ```
 
 - Linux (ARM64):
 
 ```bash
 VERSION="vX.Y.Z"
-curl -L -o ssh-manager.tar.gz \
-  "https://github.com/<TU_USUARIO>/<TU_REPO>/releases/download/${VERSION}/ssh-manager-${VERSION}-aarch64-unknown-linux-gnu.tar.gz"
-tar -xzf ssh-manager.tar.gz
-sudo install -m 0755 ssh-manager/ssh-manager /usr/local/bin/ssh-manager
+curl -L -o gam.tar.gz \
+  "https://github.com/<TU_USUARIO>/<TU_REPO>/releases/download/${VERSION}/gam-${VERSION}-aarch64-unknown-linux-gnu.tar.gz"
+tar -xzf gam.tar.gz
+sudo install -m 0755 gam/gam /usr/local/bin/gam
 ```
 
 - macOS (Intel):
 
 ```bash
 VERSION="vX.Y.Z"
-curl -L -o ssh-manager.tgz \
-  "https://github.com/<TU_USUARIO>/<TU_REPO>/releases/download/${VERSION}/ssh-manager-${VERSION}-x86_64-apple-darwin.tar.gz"
-tar -xzf ssh-manager.tgz
-sudo install -m 0755 ssh-manager/ssh-manager /usr/local/bin/ssh-manager
+curl -L -o gam.tgz \
+  "https://github.com/<TU_USUARIO>/<TU_REPO>/releases/download/${VERSION}/gam-${VERSION}-x86_64-apple-darwin.tar.gz"
+tar -xzf gam.tgz
+sudo install -m 0755 gam/gam /usr/local/bin/gam
 ```
 
 - macOS (Apple Silicon):
 
 ```bash
 VERSION="vX.Y.Z"
-curl -L -o ssh-manager.tgz \
-  "https://github.com/<TU_USUARIO>/<TU_REPO>/releases/download/${VERSION}/ssh-manager-${VERSION}-aarch64-apple-darwin.tar.gz"
-tar -xzf ssh-manager.tgz
-sudo install -m 0755 ssh-manager/ssh-manager /usr/local/bin/ssh-manager
+curl -L -o gam.tgz \
+  "https://github.com/<TU_USUARIO>/<TU_REPO>/releases/download/${VERSION}/gam-${VERSION}-aarch64-apple-darwin.tar.gz"
+tar -xzf gam.tgz
+sudo install -m 0755 gam/gam /usr/local/bin/gam
 ```
 
 - Windows (PowerShell):
 
 ```powershell
 $Version = "vX.Y.Z"
-Invoke-WebRequest -Uri "https://github.com/<TU_USUARIO>/<TU_REPO>/releases/download/$Version/ssh-manager-$Version-x86_64-pc-windows-msvc.zip" -OutFile ssh-manager.zip
-Expand-Archive ssh-manager.zip -DestinationPath .
-Move-Item -Force .\ssh-manager\ssh-manager.exe $Env:UserProfile\bin\ssh-manager.exe
+Invoke-WebRequest -Uri "https://github.com/<TU_USUARIO>/<TU_REPO>/releases/download/$Version/gam-$Version-x86_64-pc-windows-msvc.zip" -OutFile gam.zip
+Expand-Archive gam.zip -DestinationPath .
+Move-Item -Force .\gam\gam.exe $Env:UserProfile\bin\gam.exe
 # Asegúrate de tener %UserProfile%\bin en el PATH
 ```
 
 Verificación de integridad (opcional):
 
 ```bash
-shasum -a 256 -c ssh-manager-${VERSION}-SHA256SUMS.txt
+shasum -a 256 -c gam-${VERSION}-SHA256SUMS.txt
 ```
 
 ## 📖 Uso
@@ -109,7 +109,7 @@ shasum -a 256 -c ssh-manager-${VERSION}-SHA256SUMS.txt
 ### Modo interactivo (recomendado)
 
 ```bash
-ssh-manager
+gam
 ```
 
 Esto iniciará un menú interactivo donde puedes:
@@ -125,28 +125,28 @@ Esto iniciará un menú interactivo donde puedes:
 
 ```bash
 # Agregar nueva cuenta
-ssh-manager add
+gam add
 
 # Listar todas las cuentas
-ssh-manager list
+gam list
 
 # Cambiar cuenta activa
-ssh-manager switch
+gam switch
 
 # Mostrar cuenta actual y probar conexión
-ssh-manager status
+gam status
 
 # Eliminar una cuenta
-ssh-manager remove
+gam remove
 ```
 
 ## 📁 Estructura de archivos
 
-El SSH Manager crea y gestiona los siguientes archivos:
+Git Account Manager crea y gestiona los siguientes archivos:
 
 ```
 ~/.ssh/
-├── ssh_manager_config.json     # Configuración del manager
+├── gam_config.json             # Configuración del manager (compatible con ssh_manager_config.json)
 ├── config                      # SSH config (actualizado automáticamente)
 ├── id_accountname_hostname     # Claves privadas
 └── id_accountname_hostname.pub # Claves públicas
@@ -163,7 +163,7 @@ Al agregar una cuenta se puede escribir un bloque por cuenta en `~/.ssh/config` 
 git remote set-url origin git@github-work:org/repo.git
 ```
 
-Además, al usar `ssh-manager switch`, se actualiza un bloque “activo” para el host real (p. ej., `Host github.com`) que apunta a la clave de la cuenta seleccionada. Así, si usas `git@github.com:org/repo.git` sin alias, se usará la cuenta activa.
+Además, al usar `gam switch`, se actualiza un bloque “activo” para el host real (p. ej., `Host github.com`) que apunta a la clave de la cuenta seleccionada. Así, si usas `git@github.com:org/repo.git` sin alias, se usará la cuenta activa.
 
 Recomendación: utiliza aliases para remotos de Git si gestionas varias identidades en el mismo host, y usa `switch` para cambiar rápidamente la identidad por defecto del host.
 
@@ -172,7 +172,7 @@ Recomendación: utiliza aliases para remotos de Git si gestionas varias identida
 ### 1. Agregar cuenta de trabajo
 
 ```bash
-ssh-manager add
+gam add
 ```
 
 ```
@@ -202,7 +202,7 @@ ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA... juan@empresa.com
 ### 2. Agregar cuenta personal
 
 ```bash
-ssh-manager add
+gam add
 ```
 
 Similar al anterior, pero con datos personales.
@@ -210,7 +210,7 @@ Similar al anterior, pero con datos personales.
 ### 3. Cambiar entre cuentas
 
 ```bash
-ssh-manager switch
+gam switch
 ```
 
 ```
@@ -224,7 +224,7 @@ ssh-manager switch
 ### 4. Ver estado actual
 
 ```bash
-ssh-manager status
+gam status
 ```
 
 ```
