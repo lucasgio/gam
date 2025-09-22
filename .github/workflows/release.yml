@@ -152,6 +152,15 @@ jobs:
           cd dist
           find . -type f \( -name 'gam-*.tar.gz' -o -name 'gam-*.zip' \) -print0 | xargs -0 shasum -a 256 > gam-SHA256SUMS.txt || true
 
+      - name: Verify GH_TOKEN (PAT) is present
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "GH_TOKEN secret is missing. Create a Personal Access Token with repo scope and add it as repository secret GH_TOKEN." >&2
+            exit 1
+          fi
+
       - name: Create/Update GitHub Release
         uses: ncipollo/release-action@v1
         with:
@@ -163,6 +172,6 @@ jobs:
           artifactErrorsFailBuild: false
           artifacts: |
             dist/**
-          token: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_TOKEN }}
 
 
