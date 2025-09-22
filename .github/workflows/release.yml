@@ -41,36 +41,59 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Rust (stable) with retry
-        uses: Wandalen/wretry.action@v1.4.9
+      - name: Install Rust (stable) attempt 1
+        id: install_rust_1
+        uses: dtolnay/rust-toolchain@stable
         with:
-          attempt_limit: 5
-          attempt_delay: 20000
-          action: dtolnay/rust-toolchain@stable
-          with: '{"targets":"${{ matrix.target }}"}'
+          targets: ${{ matrix.target }}
+        continue-on-error: true
+
+      - name: Install Rust (stable) attempt 2
+        if: steps.install_rust_1.outcome != 'success'
+        id: install_rust_2
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+        continue-on-error: true
+
+      - name: Install Rust (stable) attempt 3
+        if: steps.install_rust_2.outcome != 'success'
+        id: install_rust_3
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+        continue-on-error: true
+
+      - name: Verify Rust toolchain
+        run: rustc -V && cargo -V
 
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
 
-      - name: Install cross (Linux cross targets) with retry
+      - name: Install cross (Linux cross targets)
         if: ${{ matrix.use_cross }}
-        uses: Wandalen/wretry.action@v1.4.9
-        with:
-          attempt_limit: 3
-          attempt_delay: 15000
-          command: cargo install cross --git https://github.com/cross-rs/cross
-
-      - name: Build (release) with retry
-        uses: Wandalen/wretry.action@v1.4.9
-        with:
-          attempt_limit: 3
-          attempt_delay: 15000
-          command: |
-            if [ "${{ matrix.use_cross }}" = "true" ]; then
-              cross build --release --locked --target ${{ matrix.target }}
-            else
-              cargo build --release --locked --target ${{ matrix.target }}
+        run: |
+          for i in 1 2 3; do
+            echo "Attempt $i: install cross"
+            if cargo install cross --git https://github.com/cross-rs/cross; then
+              break
             fi
+            echo "Retrying in 15s..." && sleep 15
+          done
+
+      - name: Build (release)
+        shell: bash
+        run: |
+          set -e
+          for i in 1 2 3; do
+            echo "Attempt $i: build"
+            if [ "${{ matrix.use_cross }}" = "true" ]; then
+              cross build --release --locked --target ${{ matrix.target }} && break
+            else
+              cargo build --release --locked --target ${{ matrix.target }} && break
+            fi
+            echo "Retrying in 15s..." && sleep 15
+          done
 
       - name: Prepare package
         shell: bash
