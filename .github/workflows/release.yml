@@ -127,8 +127,7 @@ jobs:
             cp "$OUT_DIR/$PKG_BASENAME.tar.gz" "$OUT_DIR/${BIN_NAME}-${{ matrix.target }}.tar.gz"
           fi
 
-          # Checksums
-          (cd "$OUT_DIR" && shasum -a 256 * > "${BIN_NAME}-${VERSION}-SHA256SUMS.txt") || true
+          # Do not create checksums here to avoid duplicate names across matrices
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -145,6 +144,13 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: dist
+
+      - name: Generate consolidated checksums
+        shell: bash
+        run: |
+          set -euxo pipefail
+          cd dist
+          find . -type f \( -name 'gam-*.tar.gz' -o -name 'gam-*.zip' \) -print0 | xargs -0 shasum -a 256 > gam-SHA256SUMS.txt || true
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
