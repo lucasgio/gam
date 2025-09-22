@@ -41,25 +41,36 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Rust (stable)
-        uses: dtolnay/rust-toolchain@stable
+      - name: Install Rust (stable) with retry
+        uses: Wandalen/wretry.action@v1.4.9
         with:
-          targets: ${{ matrix.target }}
+          attempt_limit: 5
+          attempt_delay: 20000
+          action: dtolnay/rust-toolchain@stable
+          with: '{"targets":"${{ matrix.target }}"}'
 
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
 
-      - name: Install cross (Linux cross targets)
+      - name: Install cross (Linux cross targets) with retry
         if: ${{ matrix.use_cross }}
-        run: cargo install cross --git https://github.com/cross-rs/cross
+        uses: Wandalen/wretry.action@v1.4.9
+        with:
+          attempt_limit: 3
+          attempt_delay: 15000
+          command: cargo install cross --git https://github.com/cross-rs/cross
 
-      - name: Build (release)
-        run: |
-          if [ "${{ matrix.use_cross }}" = "true" ]; then
-            cross build --release --locked --target ${{ matrix.target }}
-          else
-            cargo build --release --locked --target ${{ matrix.target }}
-          fi
+      - name: Build (release) with retry
+        uses: Wandalen/wretry.action@v1.4.9
+        with:
+          attempt_limit: 3
+          attempt_delay: 15000
+          command: |
+            if [ "${{ matrix.use_cross }}" = "true" ]; then
+              cross build --release --locked --target ${{ matrix.target }}
+            else
+              cargo build --release --locked --target ${{ matrix.target }}
+            fi
 
       - name: Prepare package
         shell: bash
