@@ -161,17 +161,3 @@ jobs:
             exit 1
           fi
 
-      - name: Create/Update GitHub Release
-        uses: ncipollo/release-action@v1
-        with:
-          tag: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
-          prerelease: ${{ contains(github.ref_name, '-alpha') || contains(github.ref_name, '-beta') || contains(github.ref_name, '-rc') }}
-          allowUpdates: true
-          removeArtifacts: true
-          artifactErrorsFailBuild: false
-          artifacts: |
-            dist/**
-          token: ${{ secrets.GH_TOKEN }}
-
-
