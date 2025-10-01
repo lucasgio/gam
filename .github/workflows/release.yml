@@ -88,12 +88,13 @@ jobs:
         shell: bash
         run: |
           set -e
+          BIN_NAME="gam"
           for i in 1 2 3; do
             echo "Attempt $i: build"
             if [ "${{ matrix.use_cross }}" = "true" ]; then
-              cross build --release --locked --target ${{ matrix.target }} && break
+              cross build --release --locked --bin "$BIN_NAME" --target ${{ matrix.target }} && break
             else
-              cargo build --release --locked --target ${{ matrix.target }} && break
+              cargo build --release --locked --bin "$BIN_NAME" --target ${{ matrix.target }} && break
             fi
             echo "Retrying in 15s..." && sleep 15
           done
