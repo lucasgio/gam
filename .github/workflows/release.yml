@@ -161,3 +161,27 @@ jobs:
             exit 1
           fi
 
+      - name: Ensure release exists
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          set -euxo pipefail
+          VERSION="${GITHUB_REF#refs/tags/}"
+          if ! gh release view "$VERSION" >/dev/null 2>&1; then
+            gh release create "$VERSION" --title "$VERSION" --generate-notes
+          fi
+
+      - name: Upload release assets (clobber)
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          set -euxo pipefail
+          VERSION="${GITHUB_REF#refs/tags/}"
+          mapfile -d '' FILES < <(find dist -type f \( -name 'gam-*.tar.gz' -o -name 'gam-*.zip' -o -name 'gam-*.txt' \) -print0)
+          if [ "${#FILES[@]}" -eq 0 ]; then
+            echo "No release assets found in dist" >&2
+            exit 1
+          fi
+          for file in "${FILES[@]}"; do
+            gh release upload "$VERSION" "$file" --clobber
+          done
